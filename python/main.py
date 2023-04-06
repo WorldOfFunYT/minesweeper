@@ -8,11 +8,11 @@ from commands import *
 gameHandler = Game()
 gameHandler.menuScreen()
 
-while gameHandler.running:
+while gameHandler.programRunning:
     # gameHandler.checkIfWon()
     # if not gameHandler.running:
     #     break
-    command = input()
+    command = input('> ')
     gameHandler.runCommand(command)
 
 

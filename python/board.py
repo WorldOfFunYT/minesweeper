@@ -12,6 +12,7 @@ class Board:
         self.uncovered = np.array([[False for i in range(self.width)] for i in range(self.height)])
         self.flags = np.array([[False for i in range(self.width)] for i in range(self.height)])
         self.minePositions = np.array([[False for i in range(self.width)] for i in range(self.height)])
+        self.initialised = False
         if self.mines >= self.width * self.height:
             self.mines = self.width * self.height-1
         if self.mines <= 0:
@@ -30,7 +31,7 @@ class Board:
         self.width -= 2
         self.height -= 2
 
-    def setup(self, banned_coord):
+    def setup(self, banned_coord: list):
         for i in range(self.mines):
             random.seed(self.seed+i)
             x, y = (random.randint(0, self.width-1), random.randint(0, self.height-1))
@@ -38,6 +39,8 @@ class Board:
                 x, y = (random.randint(0, self.width-1), random.randint(0, self.height-1))
             self.board[y, x] = "O"
             self.minePositions[y, x] = True
+        self.addNumbers()
+        self.initialised = True
     
     
     def reveal(self, x, y):
@@ -126,7 +129,7 @@ class Board:
                     case "6":
                         colour = fg(6)
                     case "7":
-                        colour = fg(256)
+                        colour = fg(255)
                     case "8":
                         colour = fg(243)
                     case "O":

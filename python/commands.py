@@ -23,3 +23,16 @@ class Parameter:
             return f'<{self.name}>'
         else:
             return f'[{self.name}]'
+class Parameters:
+    def __init__(self, params, required):
+        self.parameters = params
+        self.required = required
+    def __str__(self):
+        paramsString = ""
+        for param in self.parameters:
+            paramsString += f'{param} '
+        paramsString = paramsString[:-1]
+        if self.required:
+            return f'<{paramsString}>'
+        else:
+            return f'[{paramsString}]'

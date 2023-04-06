@@ -6,7 +6,9 @@ from commands import *
 
 class Game:
     def __init__(self):
-        self.running = True
+        self.running = False
+        self.programRunning = True
+        self.board = None
         self.commands = {
             "step": Command(
                 "step", 
@@ -26,6 +28,31 @@ class Game:
                 "help", 
                 [], 
                 "Show a list of all commands"
+            ),
+            "start": Command(
+                "start",
+                [
+                    Parameter("width", True),
+                    Parameter("height", True),
+                    Parameter("mines", True),
+                    Parameter("seed", False)
+                ],
+                "Start the game"
+            ),
+            "restart": Command(
+                "restart",
+                [
+                    Parameters([Parameter("width", True),
+                    Parameter("height", True),
+                    Parameter("mines", True),
+                    Parameter("seed", False)], False)
+                ],
+                "Start a new game. If no arguments are provided, use the same settings as the previous game, including the seed."
+            ),
+            "quit": Command(
+                "quit",
+                [],
+                "Stop the program"
             )}
         return
     
@@ -53,6 +80,9 @@ class Game:
         commandName = inputCommandWithParameters[0]
         match commandName:
             case "step":
+                if not self.board:
+                    self.error("Game not started", "start")
+                    return
                 try:
                     x = int(inputCommandWithParameters[1])
                 except IndexError:
@@ -63,8 +93,19 @@ class Game:
                     return
                 try:
                     y = int(inputCommandWithParameters[2])
+                    if x < 0 or x > self.board.width-1:
+                        self.error("x index out of range", "step")
+                        return
+                    if y < 0 or y > self.board.height-1:
+                        self.error("y index out of range", "step")
+                        return
+                    if not self.board.initialised:
+                        self.board.setup([x, y])
                     self.step(x, y)
+                    self.checkIfWon()
                     self.printBoard()
+                    if not self.running:
+                        self.menuScreen()
                 except IndexError:
                     self.error("2 arguments expected, but one was given", "step")
                     return
@@ -72,6 +113,9 @@ class Game:
                     self.error("2 arguments expected, but one was given", "step")
                     return
             case "flag":
+                if not self.board:
+                    self.error("Game not started", "start")
+                    return
                 try:
                     x = int(inputCommandWithParameters[1])
                 except IndexError:
@@ -92,30 +136,66 @@ class Game:
                     return
             case "help":
                 self.help()
-            
+            case "start":
+                if len(inputCommandWithParameters) < 4:
+                    self.error("Not enough arguments", "start")
+                    return
+                if len(inputCommandWithParameters) > 5:
+                    self.error("Too many arguments", "start")
+                    return
+                for i in range(1, len(inputCommandWithParameters)):
+                    if not inputCommandWithParameters[i].isnumeric():
+                        self.error("One or more arguments are not integers", "start")
+                        return
+                if len(inputCommandWithParameters) == 5:
+                    self.start(inputCommandWithParameters[1], inputCommandWithParameters[2], inputCommandWithParameters[3], inputCommandWithParameters[4])
+                    return
+                self.start(inputCommandWithParameters[1], inputCommandWithParameters[2], inputCommandWithParameters[3])
+            case "restart":
+                if len(inputCommandWithParameters) == 1:
+                    self.start(self.board.width, self.board.height, self.board.mines, self.board.seed)
+                    return
+                elif len(inputCommandWithParameters) < 4:
+                    self.error("Not enough arguments", "restart")
+                    return
+                elif len(inputCommandWithParameters) > 5:
+                    self.error("Too many arguments", "restart")
+                    return
+                for i in range(1, len(inputCommandWithParameters)):
+                    if not inputCommandWithParameters[i].isnumeric():
+                        self.error("One or more arguments are not integers", "restart")
+                        return
+                if len(inputCommandWithParameters) == 5:
+                    self.start(inputCommandWithParameters[1], inputCommandWithParameters[2], inputCommandWithParameters[3], inputCommandWithParameters[4])
+                    return
+                self.start(inputCommandWithParameters[1], inputCommandWithParameters[2], inputCommandWithParameters[3])
+            case "quit":
+                self.programRunning = False
     def step(self, x, y):
         if self.board.board[y, x] == "O":
             self.board.uncovered[self.board.uncovered == False] = True
-            print("Game over")
+            print(f"{fg('red')}Game over{attr(0)}")
             self.running = False
         self.board.reveal(x, y)
     
-    def start(self, width, height, mines, seed):
+    def start(self, width, height, mines, seed=""):
+        width = int(width)
+        height = int(height)
+        mines = int(mines)
         if seed == "":
             seed = random.randint(0, 1_000_000_000)
             print(seed)
-        if type(seed) == str:
-            # Turn string into number somehow
-            pass
+        seed = int(seed)
         
         self.board = Board(width, height, mines, seed)
+        self.running = True
 
     def flag(self, x, y):
         self.board.flags[y, x] = not self.board.flags[y, x]
 
     def help(self):
         for command in self.commands:
-            print(command + '\n')
+            print(f'{self.commands[command]}\n')
     
     def checkIfWon(self):
         won = True
@@ -123,9 +203,9 @@ class Game:
             for x in range(self.board.width):
                 if not self.board.uncovered[y, x] and not self.board.minePositions[y, x]:
                     won=False
-        if won:
+        if won and self.running == True:
             self.board.uncovered[self.board.uncovered == False] = True
-            print("You won!")
+            print(f'{fg("green")}You won!{attr(0)}')
         self.running = not won
             
     def menuScreen(self):
