@@ -1,15 +1,28 @@
-Inputs
+Commands
 
 - `step <x position> <y position>`
-Reveal a spot on the board.
+  
+    Reveal a spot on the board
+
 - `flag <x position> <y position>`
-Flag a mine.
-- `quit`
-End the program.
-- `restart [<size> <mines>]`
-Restart the game. Will regenerate the mine positions.
+  
+    Flag a spot on the board
+
 - `help`
-Show descriptions for all commands.
+
+    Show a list of all commands
+
+- `start <width> <height> <mines> [seed]`
+
+    Start the game
+
+- `restart [<width> <height> <mines> [seed]]`
+
+    Start a new game. If no arguments are provided, use the same settings as the previous game, including the seed.
+
+- `quit`
+
+    Stop the program
 
 Colours:
 
